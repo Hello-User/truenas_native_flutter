@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/login_screen.dart';
+import 'screens/settings_menu.dart';
 
-void main() {
-  runApp(const MyApp());
+const String isConfiguredKey = 'is_configured';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool configured = prefs.getBool(isConfiguredKey) ?? false;
+
+  runApp(MyApp(isConfigured: configured));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isConfigured;
+  const MyApp({super.key, required this.isConfigured});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +32,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark),
       ),
       themeMode: ThemeMode.dark,
-      home: const MainDashboard(title: 'TrueNAS'),
+      home: isConfigured ? MainDashboard(title: 'TrueNAS') : LoginScreen()
     );
   }
 }
@@ -37,6 +48,12 @@ class MainDashboard extends StatefulWidget {
 
 class _MainDashboardState extends State<MainDashboard> {
 
+  void _navigateToSettings() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const SettingsScreen(),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,10 +67,30 @@ class _MainDashboardState extends State<MainDashboard> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.inversePrimary,
                 ),
-                child: Text("TrueNAS")
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "TrueNAS",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      tooltip: 'Settings',
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _navigateToSettings();
+                      },
+                    )
+                  ],
+                )
               ),
             ),
-            DrawerItems(),
+            const DrawerItems(),
           ],
         ),
       ),
@@ -86,7 +123,7 @@ class DrawerItems extends StatelessWidget {
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.storage),
+                leading: Icon(Icons.dns),
                 title: Text("Storage"),
                 onTap: () => Navigator.pop(context),
               ),
@@ -136,6 +173,21 @@ class DrawerItems extends StatelessWidget {
                 onTap: () => Navigator.pop(context),
               ),
       ],
+    );
+  }
+}
+
+Future<void> clearConfig(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+
+  await prefs.remove(truenasUrlKey);
+  await prefs.remove(truenasApiKeyKey);
+  await prefs.setBool(isConfiguredKey, false);
+
+  if (context.mounted) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (Route<dynamic> route) => false,
     );
   }
 }
