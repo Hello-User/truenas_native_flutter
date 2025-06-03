@@ -47,8 +47,34 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text("TrueNAS")
               ),
             ),
-            // SafeArea(
-              ListTile(
+            DrawerItems(),
+          ],
+        ),
+      ),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('placeholder'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DrawerItems extends StatelessWidget {
+  const DrawerItems({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
                 leading: Icon(Icons.dashboard),
                 title: Text("Dashboard"),
                 onTap: () => Navigator.pop(context),
@@ -103,22 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 title: Text("System"),
                 onTap: () => Navigator.pop(context),
               ),
-            // )
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('placeholder'),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }
