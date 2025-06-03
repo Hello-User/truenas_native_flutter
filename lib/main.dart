@@ -7,7 +7,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,21 +14,25 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100)),
       ),
-      home: const MyHomePage(title: 'TrueNAS'),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100), brightness: Brightness.dark),
+      ),
+      themeMode: ThemeMode.dark,
+      home: const MainDashboard(title: 'TrueNAS'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class MainDashboard extends StatefulWidget {
+  const MainDashboard({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainDashboard> createState() => _MainDashboardState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainDashboardState extends State<MainDashboard> {
 
   @override
   Widget build(BuildContext context) {
