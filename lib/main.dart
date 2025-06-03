@@ -12,10 +12,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'TrueNAS Native',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100),
+        brightness: Brightness.light,
+        ),
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100), brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100),
+        brightness: Brightness.dark),
       ),
       themeMode: ThemeMode.dark,
       home: const MainDashboard(title: 'TrueNAS'),
