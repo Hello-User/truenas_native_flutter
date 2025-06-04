@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart';
+import '../dashboard.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

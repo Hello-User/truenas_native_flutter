@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'dart:convert'; // For jsonEncode/jsonDecode
-import 'dart:io'; // For WebSocketException if needed
+import 'dart:convert';
 import 'package:web_socket_channel/io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:truenas_native/screens/login_screen.dart'; // For key constants

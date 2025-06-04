@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main.dart';
+import '../dashboard.dart';
 
 const String truenasUrlKey = 'truenas_url';
 const String truenasUsername = 'truenas_username';
@@ -46,12 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString(truenasUrlKey, urlToSave);
         await prefs.setString(truenasUsername, _usernameController.text.trim());
         await prefs.setString(truenasPassword, _passwordController.text.trim());
-        await prefs.setBool(isConfiguredKey, true); // isConfiguredKey from main.dart
-
+        await prefs.setBool(isConfiguredKey, true);
+        const bool isConfigured = true;
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const MainDashboard(title: 'TrueNAS'),
+              builder: (context) => const MainDashboard(title: 'TrueNAS', isConfigured: isConfigured),
             ),
           );
         }
