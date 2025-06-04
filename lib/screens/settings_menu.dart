@@ -41,7 +41,7 @@ class SettingsScreen extends StatelessWidget {
                   );
                 },
               );
-
+              if (!context.mounted) return;
               if (confirm == true) {
                 await clearConfig(context);
               }

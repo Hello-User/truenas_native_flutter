@@ -3,7 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 
 const String truenasUrlKey = 'truenas_url';
-const String truenasApiKeyKey = 'truenas_api_key';
+const String truenasUsername = 'truenas_username';
+const String truenasPassword = 'truenas_password';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,13 +16,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _urlController = TextEditingController();
-  final _apiKeyController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _urlController.dispose();
-    _apiKeyController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -41,7 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
         await prefs.setString(truenasUrlKey, urlToSave);
-        await prefs.setString(truenasApiKeyKey, _apiKeyController.text.trim());
+        await prefs.setString(truenasUsername, _usernameController.text.trim());
+        await prefs.setString(truenasPassword, _passwordController.text.trim());
         await prefs.setBool(isConfiguredKey, true); // isConfiguredKey from main.dart
 
         if (mounted) {
@@ -122,10 +126,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _apiKeyController,
+                  controller: _usernameController,
                   decoration: InputDecoration(
-                    labelText: 'API Key',
-                    hintText: 'Enter your TrueNAS API Key',
+                    labelText: 'Username',
+                    hintText: 'Enter your TrueNAS Username',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    prefixIcon: Icon(Icons.person, color: theme.colorScheme.primary),
+                  ),
+                  obscureText: false,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your Username';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter your TrueNAS Password',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -134,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your API Key';
+                      return 'Please enter your Password';
                     }
                     return null;
                   },

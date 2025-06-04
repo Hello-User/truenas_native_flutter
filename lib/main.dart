@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/settings_menu.dart';
+import 'services/websockets.dart';
+import 'dart:convert';
 
 const String isConfiguredKey = 'is_configured';
 
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromRGBO(0, 153, 216, 100),
         brightness: Brightness.dark),
       ),
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       home: isConfigured ? MainDashboard(title: 'TrueNAS') : LoginScreen()
     );
   }
@@ -47,6 +49,65 @@ class MainDashboard extends StatefulWidget {
 }
 
 class _MainDashboardState extends State<MainDashboard> {
+  final TrueNASWebSocketService _webSocketService = TrueNASWebSocketService();
+  String _webSocketData = 'Initializing...';
+
+  @override
+  void initState() {
+    super.initState();
+    _connectWebSocket();
+
+    _webSocketService.messages.listen((message) {
+      if (mounted) {
+        setState(() {
+          try {
+            final decoded = jsonDecode(message.toString());
+            final prettyString = const JsonEncoder.withIndent('  ').convert(decoded);
+            _webSocketData = 'Received:\n$prettyString';
+          } catch (e) {
+            _webSocketData = 'Received raw: ${message.toString()}';
+          }
+        });
+      }
+    }, onError: (error) {
+      if (mounted) {
+        setState(() {
+          _webSocketData = 'Error: $error';
+        });
+      }
+    });
+  }
+
+  Future<void> _connectWebSocket() async {
+    if (mounted) {
+      setState(() {
+        _webSocketData = 'Connecting and authenticating...';
+      });
+    }
+
+    bool isAuthenticated = await _webSocketService.connect();
+
+    if (mounted) {
+      if (isAuthenticated && _webSocketService.isConnected) {
+        setState(() {
+          _webSocketData = 'WebSocket Authenticated. Fetching data...';
+        });
+        _webSocketService.sendCommand("pool.dataset.get_instance", ["Chronos", {"select": ["id", "used.value", "available.value"]}]);
+      } else {
+        if (!_webSocketData.startsWith('Error:')) {
+          setState(() {
+            _webSocketData = 'Authentication Failed. Please check credentials, server, or network.';
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _webSocketService.dispose();
+    super.dispose();
+  }
 
   void _navigateToSettings() {
     Navigator.of(context).push(MaterialPageRoute(
@@ -99,11 +160,14 @@ class _MainDashboardState extends State<MainDashboard> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('placeholder'),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Text(
+              _webSocketData,
+              textAlign: TextAlign.center,
+            ),
+          ),
         ),
       ),
     );
@@ -118,58 +182,58 @@ class DrawerItems extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-                leading: Icon(Icons.dashboard),
-                title: Text("Dashboard"),
+                leading: const Icon(Icons.dashboard),
+                title: const Text("Dashboard"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.dns),
-                title: Text("Storage"),
+                leading: const Icon(Icons.dns),
+                title: const Text("Storage"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.account_tree),
-                title: Text("Datasets"),
+                leading: const Icon(Icons.account_tree),
+                title: const Text("Datasets"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.folder_shared),
-                title: Text("Shares"),
+                leading: const Icon(Icons.folder_shared),
+                title: const Text("Shares"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.security),
-                title: Text("Data Protection"),
+                leading: const Icon(Icons.security),
+                title: const Text("Data Protection"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.device_hub),
-                title: Text("Network"),
+                leading: const Icon(Icons.device_hub),
+                title: const Text("Network"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.vpn_key),
-                title: Text("Credentials"),
+                leading: const Icon(Icons.vpn_key),
+                title: const Text("Credentials"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.computer),
-                title: Text("Instances"),
+                leading: const Icon(Icons.computer),
+                title: const Text("Instances"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.apps),
-                title: Text("Apps"),
+                leading: const Icon(Icons.apps),
+                title: const Text("Apps"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.assessment),
-                title: Text("Reporting"),
+                leading: const Icon(Icons.assessment),
+                title: const Text("Reporting"),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.settings),
-                title: Text("System"),
+                leading: const Icon(Icons.settings),
+                title: const Text("System"),
                 onTap: () => Navigator.pop(context),
               ),
       ],
@@ -181,7 +245,8 @@ Future<void> clearConfig(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
 
   await prefs.remove(truenasUrlKey);
-  await prefs.remove(truenasApiKeyKey);
+  await prefs.remove(truenasUsername);
+  await prefs.remove(truenasPassword);
   await prefs.setBool(isConfiguredKey, false);
 
   if (context.mounted) {
