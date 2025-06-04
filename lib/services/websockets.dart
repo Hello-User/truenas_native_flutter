@@ -28,7 +28,7 @@ class TrueNASWebSocketService {
 
   void _startListeningToChannel() {
     if (_channel == null) {
-      print("Cannot listen, channel is null.");
+      // print("Cannot listen, channel is null.");
       if (_authCompleter != null && !_authCompleter!.isCompleted) {
         _authCompleter!.complete(false);
       }
@@ -37,12 +37,12 @@ class TrueNASWebSocketService {
 
     _channel!.stream.listen(
       (message) {
-        print('WS Received: $message');
+        // print('WS Received: $message');
         dynamic decodedMessage;
         try {
           decodedMessage = jsonDecode(message.toString());
         } catch (e) {
-          print('Error decoding JSON message: $e');
+          // print('Error decoding JSON message: $e');
           _messagesController.add(message);
           return;
         }
@@ -53,14 +53,14 @@ class TrueNASWebSocketService {
             decodedMessage['id'] == _authRequestId) {
           if (decodedMessage.containsKey('result') && decodedMessage['result'] == true) {
             _isConnected = true;
-            print('WebSocket Authenticated successfully.');
+            // print('WebSocket Authenticated successfully.');
             if (_authCompleter != null && !_authCompleter!.isCompleted) {
               _authCompleter!.complete(true);
             }
           } else {
             _isConnected = false;
             String authError = decodedMessage['error']?.toString() ?? 'Authentication failed.';
-            print('WebSocket Authentication failed: $authError');
+            // print('WebSocket Authentication failed: $authError');
             if (_authCompleter != null && !_authCompleter!.isCompleted) {
               _authCompleter!.complete(false);
             }
@@ -75,7 +75,7 @@ class TrueNASWebSocketService {
       },
       onDone: () {
         _isConnected = false;
-        print('WebSocket disconnected.');
+        // print('WebSocket disconnected.');
         if (_authCompleter != null && !_authCompleter!.isCompleted) {
           _authCompleter!.complete(false);
         }
@@ -83,7 +83,7 @@ class TrueNASWebSocketService {
       },
       onError: (error) {
         _isConnected = false;
-        print('WebSocket error: $error');
+        // print('WebSocket error: $error');
         if (_authCompleter != null && !_authCompleter!.isCompleted) {
           _authCompleter!.complete(false);
         }
@@ -94,13 +94,13 @@ class TrueNASWebSocketService {
 
   Future<bool> connect() async {
     if (_isConnected && _channel != null) {
-      print('WebSocket already connected and authenticated.');
+      // print('WebSocket already connected and authenticated.');
       return true;
     }
 
     // If a connection/authentication attempt is already in progress, return its future
     if (_authCompleter != null && !_authCompleter!.isCompleted) {
-      print('Connection/Authentication already in progress.');
+      // print('Connection/Authentication already in progress.');
       return _authCompleter!.future;
     }
 
@@ -110,9 +110,8 @@ class TrueNASWebSocketService {
     await _loadCredentials();
 
     if (_truenasUrl == null || _username == null || _password == null) {
-      print('Error: TrueNAS URL, Username or Password not found in SharedPreferences.');
+      // print('Error: TrueNAS URL, Username or Password not found in SharedPreferences.');
       _messagesController.addError('Credentials not configured.');
-      // Complete with failure if not already completed.
       if (!_authCompleter!.isCompleted) _authCompleter!.complete(false);
       return _authCompleter!.future;
     }
@@ -122,7 +121,7 @@ class TrueNASWebSocketService {
     Uri uri = Uri.parse(_truenasUrl!);
     final wsUrl = Uri.parse('$wsScheme://${uri.host}:${uri.port}/api/current');
 
-    print('Connecting to WebSocket: $wsUrl');
+    // print('Connecting to WebSocket: $wsUrl');
 
     try {
       // Close any existing channel before creating a new one
@@ -143,10 +142,10 @@ class TrueNASWebSocketService {
         "method": "auth.login",
         "params": [_username, _password]
       }));
-      print('Sent auth.login request with id: $_authRequestId');
+      // print('Sent auth.login request with id: $_authRequestId');
     } catch (e) {
       _isConnected = false;
-      print('WebSocket connection error: $e');
+      // print('WebSocket connection error: $e');
       _messagesController.addError('WebSocket connection error: $e');
       if (!_authCompleter!.isCompleted) {
          _authCompleter!.complete(false);
@@ -157,16 +156,16 @@ class TrueNASWebSocketService {
 
   void sendMessage(String message) {
     if (!_isConnected || _channel == null) {
-      print('Cannot send message: WebSocket not connected or not authenticated.');
+      // print('Cannot send message: WebSocket not connected or not authenticated.');
       return;
     }
-    print('WS Sending: $message');
+    // print('WS Sending: $message');
     _channel!.sink.add(message);
   }
 
   void sendCommand(String method, [List<dynamic>? params]) {
     if (!_isConnected || _channel == null) {
-      print("Cannot send command: WebSocket not connected or not authenticated.");
+      // print("Cannot send command: WebSocket not connected or not authenticated.");
       return;
     }
     String commandId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -180,17 +179,17 @@ class TrueNASWebSocketService {
       message["params"] = params;
     }
     _channel!.sink.add(jsonEncode(message));
-    print('Sent command: $method with id: $commandId');
+    // print('Sent command: $method with id: $commandId');
   }
 
   void dispose() {
-    print('Closing WebSocket channel.');
+    // print('Closing WebSocket channel.');
     _channel?.sink.close();
     _messagesController.close();
     _isConnected = false;
     _authRequestId = null;
     if (_authCompleter != null && !_authCompleter!.isCompleted) {
-      _authCompleter!.complete(false); // Ensure completer is finalized
+      _authCompleter!.complete(false);
     }
   }
 }
