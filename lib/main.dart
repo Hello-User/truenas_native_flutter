@@ -61,11 +61,11 @@ class _MainDashboardState extends State<MainDashboard> {
       if (mounted) {
         setState(() {
           try {
-            final decoded = jsonDecode(message.toString());
-            final prettyString = const JsonEncoder.withIndent('  ').convert(decoded);
-            _webSocketData = 'Received:\n$prettyString';
+            Map<String, dynamic> tl = jsonDecode(message.toString());
+            Map<String, dynamic> decoded = tl['result'];
+            _webSocketData = decoded['used']['value'];
           } catch (e) {
-            _webSocketData = 'Received raw: ${message.toString()}';
+            _webSocketData = message.toString();
           }
         });
       }
@@ -161,11 +161,11 @@ class _MainDashboardState extends State<MainDashboard> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.zero,
           child: SingleChildScrollView(
             child: Text(
               _webSocketData,
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
             ),
           ),
         ),
